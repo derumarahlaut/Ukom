@@ -443,6 +443,7 @@
             let currentQuestionIndex = 0;
             let currentMode = '';
             let currentFilters = {};
+            const GOOGLE_CLIENT_ID = '135718510603-88l0jse4trta5p0v9q64js80af89kumu.apps.googleusercontent.com'; // Ganti dengan Client ID Anda
             let accessToken = null;
 
             // Function to update question count display
@@ -1293,8 +1294,6 @@
                             // Add imported questions
                             const updatedQuestions = [...existingQuestions, ...newQuestions];
                             localStorage.setItem('aiGeneratedQuestions', JSON.stringify(updatedQuestions));
-                            
-                            // Update allQuizData
                             allQuizData.push(...newQuestions);
                             
                             // Update UI
@@ -1363,9 +1362,12 @@
                 });
 
                 // Kirim data ke Google Sheets (replace all)
-                fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&key=${API_KEY}`, {
+                fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ values: rows })
                 })
                 .then(res => res.json())

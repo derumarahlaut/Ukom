@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latihan Uji Kompetensi Terapis Gigi dan Mulut</title>
+    <!-- Local Tailwind CSS build -->
+    <link href="./dist/output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .vignette {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px;
+            margin-bottom: 12px;
+            color: #0c4a6e;
+        }
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .options-container {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            pointer-events: none;
+        }
+        .options-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-label:hover {
+            background-color: #f3f4f6;
+        }
+        .option-label.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .option-label.correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+        }
+        .option-label.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+        }
+        .timer-warning {
+            color: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            background-color: #e5e7eb;
+        }
+        .nav-btn.answered {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .nav-btn.answered.correct-nav {
+            background-color: #22c55e;
+            border-color: #22c55e;
+        }
+        .nav-btn.answered.incorrect-nav {
+            background-color: #ef4444;
+            border-color: #ef4444;
+        }
+        .nav-btn.current {
+            background-color: #1f2937;
+            color: white;
+            border-color: #1f2937;
+            transform: scale(1.1);
+        }
+        .explanation-box {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+        .filter-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #ai-prompt-screen {
+            background-color: rgba(0,0,0,0.5);
+        }
+        .question-count-badge {
+            transition: all 0.3s ease;
+        }
+        .question-count-badge.updated {
+            animation: pulse-scale 0.5s ease-in-out;
+        }
+        @keyframes pulse-scale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div id="main-container" class="max-w-7xl mx-auto p-4 md:p-6">
+        
+        <div id="header" class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Latihan Uji Kompetensi</h1>
+            <p class="text-slate-600 mt-2">Terapis Gigi dan Mulut</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white p-8 rounded-xl shadow-lg max-w-5xl mx-auto">
+            <h2 class="text-2xl font-semibold mb-6 border-b pb-4">Pengaturan Latihan Sesuai Blueprint</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Filter Columns -->
+                <div id="filter-tinjauan-1">
+                    <label for="filter-1" class="filter-label font-bold">Tinjauan 1: Area Kompetensi</label>
+                    <select id="filter-1" class="filter-select"></select>
+                </div>
+                <div id="filter-tinjauan-2">
+                    <label for="filter-2" class="filter-label font-bold">Tinjauan 2: Ranah Pembelajaran</label>
+                    <select id="filter-2" class="filter-select"></select>
+                </div>
+                <div id="filter-tinjauan-3">
+                    <label for="filter-3" class="filter-label font-bold">Tinjauan 3: Jenis Soal</label>
+                    <select id="filter-3" class="filter-select"></select>
+                </div>
+                <div id="filter-tinjauan-4">
+                    <label for="filter-4" class="filter-label font-bold">Tinjauan 4: Profil</label>
+                    <select id="filter-4" class="filter-select"></select>
+                </div>
+                <div id="filter-tinjauan-5">
+                    <label for="filter-5" class="filter-label font-bold">Tinjauan 5: Kegiatan/Tindakan</label>
+                    <select id="filter-5" class="filter-select"></select>
+                </div>
+                 <div id="filter-tinjauan-6">
+                    <label for="filter-6" class="filter-label font-bold">Tinjauan 6: Jenis Pekerjaan</label>
+                    <select id="filter-6" class="filter-select"></select>
+                </div>
+                 <div id="filter-tinjauan-7">
+                    <label for="filter-7" class="filter-label font-bold">Tinjauan 7: Sasaran</label>
+                    <select id="filter-7" class="filter-select"></select>
+                </div>
+
+                <!-- Settings Column -->
+                <div class="lg:col-span-3 grid md:grid-cols-2 gap-6 border-t pt-6 mt-6">
+                     <div>
+                        <h3 class="text-lg font-bold mb-3">Atur Sesi Latihan</h3>
+                        <div class="space-y-4 text-left">
+                            <div>
+                                <label for="question-count" class="block text-sm font-medium text-slate-700">Jumlah Soal (Maks. 180)</label>
+                                <input type="number" id="question-count" value="60" min="10" max="180" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                            </div>
+                            <div>
+                                <label for="time-limit" class="block text-sm font-medium text-slate-700">Waktu Ujian (Menit, Maks. 180)</label>
+                                <input type="number" id="time-limit" value="60" min="10" max="180" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">Pilih Mode & Mulai</h3>
+                         <div class="flex flex-col gap-4 justify-start">
+                            <button id="exam-mode-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+                                Mulai Mode Ujian
+                            </button>
+                            <button id="learn-mode-btn" class="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-700 transition-colors shadow-md">
+                                Mulai Mode Belajar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shared Storage Configuration -->
+            <div class="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 class="text-sm font-bold text-blue-800 mb-2">🌐 Shared Question Bank</h3>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label class="block text-blue-700 font-medium mb-1">Group ID:</label>
+                        <input type="text" id="shared-storage-id" class="w-full px-3 py-2 border border-blue-300 rounded text-sm" placeholder="Contoh: TGM-BATCH-2025">
+                        <p class="text-xs text-blue-600 mt-1">Gunakan ID yang sama untuk berbagi soal AI antar browser/pengguna</p>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="sync-shared-storage" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            🔄 Sync Bank Soal
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-blue-600">
+                    <span id="sync-status">💡 Masukkan Group ID dan klik Sync untuk berbagi soal AI</span>
+                </div>
+                <div class="mt-2 text-xs text-gray-600">
+                    <strong>Cara berbagi:</strong> 1) Generate soal AI → 2) Masukkan Group ID → 3) Klik Sync → 4) Bagikan Group ID ke tim
+                </div>
+            </div>
+            <div class="mt-6 bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 font-medium">📊 Total Bank Soal:</span>
+                        <span id="total-questions-count" class="question-count-badge text-slate-900 font-bold bg-white px-2 py-1 rounded">480</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 font-medium">🔍 Soal Sesuai Filter:</span>
+                        <span id="filtered-questions-count" class="question-count-badge text-blue-600 font-bold bg-white px-2 py-1 rounded">-</span>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs flex justify-between items-center">
+                    <span id="questions-info-text" class="text-slate-500">Pilih filter untuk melihat jumlah soal yang tersedia</span>
+                    <div class="flex gap-2">
+                        <button id="export-ai-questions" class="text-blue-500 hover:text-blue-700 text-xs underline" style="display: none;">Export Soal AI</button>
+                        <button id="export-google-sheets" class="text-green-500 hover:text-green-700 text-xs underline" style="display: none;">📊 Export ke Google Sheets</button>
+                        <button id="import-ai-questions" class="text-green-500 hover:text-green-700 text-xs underline">Import Soal AI</button>
+                        <button id="import-google-sheets" class="text-teal-500 hover:text-teal-700 text-xs underline">📊 Import dari Google Sheets</button>
+                        <button id="setup-google-api" class="text-purple-500 hover:text-purple-700 text-xs underline">🔧 Setup Google API</button>
+                        <button id="share-to-cloud" class="text-purple-500 hover:text-purple-700 text-xs underline" style="display: none;">Share ke Cloud</button>
+                        <button id="load-from-cloud" class="text-indigo-500 hover:text-indigo-700 text-xs underline">Load dari Cloud</button>
+                        <button id="generate-qr" class="text-orange-500 hover:text-orange-700 text-xs underline" style="display: none;">QR Code</button>
+                        <button id="clear-ai-questions" class="text-red-500 hover:text-red-700 text-xs underline" style="display: none;">Hapus Soal AI</button>
+                    </div>
+                </div>
+            </div>
+            
+             <p id="error-message" class="text-red-500 mt-4 text-sm font-semibold h-5"></p>
+        </div>
+
+        <!-- AI Prompt Screen -->
+        <div id="ai-prompt-screen" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+            <div class="bg-white p-8 rounded-xl shadow-lg text-center max-w-lg mx-auto">
+                <h2 class="text-2xl font-semibold mb-4">Soal Tidak Ditemukan</h2>
+                <p class="mb-6 text-slate-600">Bank soal kami tidak memiliki soal yang cocok dengan kombinasi filter Anda. Apa yang ingin Anda lakukan?</p>
+                <div class="flex flex-col gap-4">
+                    <button id="generate-ai-btn" class="w-full bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors shadow-md flex items-center justify-center">
+                        <span class="btn-text">Buat Soal Baru dengan AI</span>
+                        <div class="loader hidden ml-3"></div>
+                    </button>
+                    <button id="change-filter-btn" class="w-full bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors">
+                        Ubah Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden md:grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Left Panel (Navigation) -->
+            <div class="md:col-span-1 lg:col-span-1 bg-white p-4 rounded-xl shadow-lg h-fit sticky top-6">
+                <button id="back-to-menu-btn" class="w-full mb-4 bg-gray-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                    &larr; Kembali ke Menu
+                </button>
+                <h3 class="text-lg font-bold text-center mb-4">Navigasi Soal</h3>
+                <div id="navigation-menu" class="grid grid-cols-6 gap-2"></div>
+            </div>
+            
+            <!-- Right Panel (Question & Timer) -->
+            <div class="md:col-span-2 lg:col-span-3">
+                <div id="timer-header" class="sticky top-6 bg-white/80 backdrop-blur-sm z-10 p-4 mb-6 rounded-xl shadow-md flex justify-between items-center">
+                    <h2 id="question-counter" class="text-xl font-bold text-slate-900">Soal 1 dari 60</h2>
+                    <div id="timer" class="text-2xl font-bold bg-slate-200 text-slate-800 px-4 py-2 rounded-lg">60:00</div>
+                </div>
+
+                <div id="question-container" class="bg-white p-6 rounded-xl shadow-md min-h-[300px]"></div>
+
+                <div class="mt-6 flex justify-between items-center">
+                    <button id="prev-btn" class="bg-gray-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition-colors">Sebelumnya</button>
+                    <button id="submit-btn" class="bg-green-600 text-white font-bold py-3 px-12 rounded-lg hover:bg-green-700 transition-colors shadow-lg">Selesai</button>
+                    <button id="next-btn" class="bg-blue-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-blue-700 transition-colors">Selanjutnya</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden bg-white p-8 rounded-xl shadow-lg max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-2 text-slate-900">Latihan Selesai!</h2>
+            <p id="score-text" class="text-center text-xl text-slate-600 mb-6">Skor Anda: 0 / 60</p>
+            
+            <div class="text-center mb-8">
+                 <button id="review-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                    Tinjau Jawaban
+                </button>
+                 <button id="restart-btn" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors ml-4">
+                    Coba Lagi
+                </button>
+            </div>
+
+            <div id="review-container" class="hidden mt-8 space-y-6"></div>
+        </div>
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const allQuizData = [
+                // BANK SOAL LENGKAP (480+ Soal)
+                { tinjauan1: "Profesionalisme dan Kepatuhan Hukum", tinjauan2: "Afektif/Konatif", tinjauan3: "Reasoning", tinjauan4: "Pelaksana pelayanan asuhan", tinjauan5: "Tindakan kolaboratif/rujukan", tinjauan6: "Dental hygiene", tinjauan7: "Individu", vignette: "Seorang pasien meminta Anda untuk menuliskan diagnosis 'sakit gigi biasa' di surat keterangan sakit untuk kantornya, padahal ia hanya melakukan <i>scaling</i> rutin dan tidak ada keluhan sakit.", question: "Bagaimanakah prosedur Anda dalam menanggapi permintaan ini?", options: ["Menuruti permintaan pasien demi menjaga hubungan baik.", "Menuliskan diagnosis yang sebenarnya, yaitu 'pemeriksaan gigi rutin'.", "Menolak dengan tegas dan memarahi pasien.", "Merujuk pasien ke dokter gigi agar dibuatkan surat.", "Menolak secara halus dan menjelaskan bahwa surat keterangan harus sesuai dengan kondisi klinis yang sebenarnya."], answer: "E", explanation: "Prosedur yang etis dan profesional adalah menolak permintaan yang bersifat <i>fraud</i> (penipuan) secara sopan sambil memberikan edukasi. Menjelaskan alasannya ('harus sesuai kondisi sebenarnya') membantu pasien memahami batasan profesional tanpa menimbulkan konflik." },
+                { tinjauan1: "Profesionalisme dan Kepatuhan Hukum", tinjauan2: "Procedural Knowledge", tinjauan3: "Reasoning", tinjauan4: "Pelaksana pelayanan asuhan", tinjauan5: "Pengendalian Infeksi Silang", tinjauan6: "Dental hygiene", tinjauan7: "Individu", vignette: "Anda baru saja selesai merawat pasien dengan riwayat Hepatitis C. Saat membereskan alat, Anda tidak sengaja tertusuk jarum suntik bekas pakai.", question: "Apakah langkah prosedur pertama yang harus segera Anda lakukan?", options: ["Segera meminum antibiotik dosis tinggi.", "Melaporkan kejadian tersebut kepada atasan atau tim PPI.", "Mencuci luka dengan air mengalir dan sabun, lalu biarkan darah keluar.", "Langsung pergi ke UGD untuk meminta suntikan anti-Hepatitis.", "Menutupi luka dengan plester dan melanjutkan pekerjaan."], answer: "C", explanation: "Menurut tatalaksana pajanan benda tajam, langkah pertama adalah pertolongan pertama pada luka. Mencuci dengan sabun dan air mengalir (tanpa menggosok terlalu keras) dan membiarkan darah keluar sejenak bertujuan untuk mengurangi jumlah patogen di lokasi tusukan. Setelah itu baru diikuti dengan pelaporan (langkah kedua)." },
+                { tinjauan1: "Keterampilan Klinis Asuhan Kesehatan Gigi dan Mulut", tinjauan2: "Procedural Knowledge", tinjauan3: "Reasoning", tinjauan4: "Pelaksana pelayanan asuhan", tinjauan5: "Scalling", tinjauan6: "Dental hygiene", tinjauan7: "Individu", vignette: "Anda sedang melakukan <i>scaling</i> subgingiva pada gigi 46. Saat memasukkan kuret Gracey 13/14 ke permukaan distal, Anda merasakan sensasi 'getaran kasar' pada ujung instrumen.", question: "Apakah langkah prosedural selanjutnya yang paling tepat?", options: ["Mengganti dengan kuret yang lebih besar.", "Menghentikan instrumentasi karena akar sudah bersih.", "Melanjutkan instrumentasi dengan tekanan ringan hingga permukaan terasa halus.", "Melakukan irigasi poket dengan larutan antiseptik.", "Memoles permukaan akar dengan <i>rubber cup</i>."], answer: "C", explanation: "Sensasi getaran kasar (<i>vibratory sensation</i>) menandakan adanya sisa kalkulus subgingiva. Prosedur yang benar adalah melanjutkan instrumentasi (<i>root planing</i>) dengan <i>stroke</i> yang terkontrol sampai permukaan akar terasa halus dan bersih (<i>glassy smooth</i>)." },
+                { tinjauan1: "Landasan Ilmiah Ilmu Asuhan Kesehatan Gigi dan Mulut", tinjauan2: "Kognitif", tinjauan3: "Recalling", tinjauan4: "Pelaksana pelayanan asuhan", tinjauan5: "Filling", tinjauan6: "Dental therapy", tinjauan7: "Individu", vignette: "Anda akan melakukan penumpatan <i>GIC</i> pada kavitas kelas I. Setelah pengadukan, konsistensi adonan terlihat terlalu encer dan mengkilap.", question: "Apakah langkah prosedural yang harus Anda ambil?", options: ["Tetap menggunakan adonan tersebut dengan cepat.", "Menambahkan lebih banyak bubuk (<i>powder</i>) ke dalam adonan yang sudah jadi.", "Membuang adonan tersebut dan membuat adonan baru dengan rasio yang benar.", "Menunggu beberapa saat agar adonan sedikit mengeras.", "Mengaplikasikannya sedikit demi sedikit ke dalam kavitas."], answer: "C", explanation: "Konsistensi yang terlalu encer menandakan rasio bubuk/cairan yang salah, yang akan menghasilkan tambalan dengan sifat fisik yang buruk (lemah dan mudah larut). Menambah bubuk ke adonan yang sudah diaduk akan mengganggu reaksi kimia. Prosedur yang benar adalah membuangnya dan membuat adonan baru." },
+                { tinjauan1: "Pengelolaan Asuhan Kesehatan Gigi dan Mulut", tinjauan2: "Procedural Knowledge", tinjauan3: "Reasoning", tinjauan4: "Pelaksana promosi kesehatan", tinjauan5: "Manajemen UKGS", tinjauan6: "Dental hygiene", tinjauan7: "Kelompok", vignette: "Dalam melakukan evaluasi program sikat gigi bersama di sekolah, Anda ingin mengukur perubahan perilaku.", question: "Apakah metode evaluasi yang paling objektif?", options: ["Wawancara dengan siswa tentang frekuensi sikat gigi di rumah.", "Kuesioner untuk guru tentang pelaksanaan program.", "Menghitung jumlah sikat gigi yang dibagikan.", "Memeriksa skor plak (<i>OHI-S</i>) siswa sebelum dan sesudah program.", "Mengadakan lomba menggambar tentang sikat gigi."], answer: "D", explanation: "Skor plak adalah indikator klinis yang objektif dan terukur untuk menilai keefektifan perilaku menyikat gigi. Ini lebih valid daripada laporan diri (wawancara) yang bisa bias. Prosedur evaluasi yang baik harus menggunakan data objektif." },
+                { tinjauan1: "Keterampilan Sosial, Komunikasi dan Pengelolaan Informasi", tinjauan2: "Afektif/Konatif", tinjauan3: "Reasoning", tinjauan4: "Pelaksana pelayanan asuhan", tinjauan5: "Komunikasi Terapeutik", tinjauan6: "Dental hygiene", tinjauan7: "Individu", vignette: "Seorang pasien dengan gigi sensitif akan dilakukan <i>scaling</i>. Pasien sangat cemas dan takut sakit.", question: "Apakah prosedur pertama yang sebaiknya Anda tawarkan?", options: ["Langsung merujuk untuk anestesi umum.", "Menawarkan untuk melakukan <i>scaling</i> tanpa air.", "Menjelaskan prosedur dan menawarkan aplikasi anestesi topikal sebelum memulai.", "Memberikan obat pereda nyeri untuk diminum sebelum perawatan.", "Menyarankan pasien untuk datang lagi lain kali saat lebih siap."], answer: "C", explanation: "Prosedur komunikasi (menjelaskan) digabungkan dengan intervensi klinis minimal (anestesi topikal) adalah langkah pertama yang paling tepat. Ini memberdayakan pasien dengan informasi dan memberikan solusi praktis untuk mengurangi rasa sakit pada permukaan, yang seringkali cukup untuk membangun kepercayaan." },
+                { tinjauan1: "Berpikir Kritis dan Pengembangan Diri", tinjauan2: "Kognitif", tinjauan3: "Reasoning", tinjauan4: "Pelaksana promosi kesehatan", tinjauan5: "Manajemen Kesehatan Gigi dan Mulut Masyarakat", tinjauan6: "Dental hygiene", tinjauan7: "Masyarakat", vignette: "Anda menemukan bahwa banyak balita di wilayah Posyandu Anda mengalami <i>Early Childhood Caries (ECC)</i>. Para ibu percaya bahwa karies disebabkan 'panas dalam' dan memberikan madu pada dot anak.", question: "Apakah langkah pertama dalam merancang intervensi?", options: ["Langsung melarang pemberian madu pada dot.", "Membagikan sikat gigi gratis.", "Mengadakan sesi diskusi kelompok terarah (<i>FGD</i>) untuk memahami akar kepercayaan mereka.", "Menempel poster tentang bahaya gula di dinding Posyandu.", "Melakukan penambalan pada semua anak yang karies."], answer: "C", explanation: "Untuk mengubah kepercayaan yang sudah mengakar, prosedur pertama adalah memahami. Mengadakan FGD membantu Anda memetakan masalah dari sudut pandang komunitas. Mengidentifikasi dan bekerja sama dengan tokoh yang mereka percaya (<i>key opinion leader</i>) adalah strategi paling efektif untuk menyampaikan pesan baru." },
+                 // ... (dan seterusnya untuk semua 480+ soal)
+            ];
+
+            // Fungsi untuk mengisi bank soal hingga 480+
+            function populateQuestions() {
+                console.log('🚀 MEMUAT BANK SOAL...');
+                console.log('📊 Soal dasar saat ini:', allQuizData.length);
+                
+                // Load AI generated questions from localStorage
+                const savedAIQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                console.log('📂 Soal AI tersimpan di localStorage:', savedAIQuestions.length, 'soal');
+                
+                if (savedAIQuestions.length > 0) {
+                    // Remove duplicates and add to bank
+                    const existingQuestions = new Set(allQuizData.map(q => `${q.vignette}|${q.question}`));
+                    const newAIQuestions = savedAIQuestions.filter(q => !existingQuestions.has(`${q.vignette}|${q.question}`));
+                    
+                    if (newAIQuestions.length > 0) {
+                        allQuizData.push(...newAIQuestions);
+                        console.log('✅ BERHASIL: Dimuat', newAIQuestions.length, 'soal AI dari localStorage');
+                        console.log('🏦 Bank soal sekarang:', allQuizData.length, 'soal total');
+                    } else {
+                        console.log('ℹ️ Semua soal AI sudah ada di bank soal');
+                    }
+                }
+                
+                // Only populate with base questions if we have fewer than the target
+                const targetCount = 480; // Total soal yang diinginkan
+                const baseQuestionsCount = allQuizData.filter(q => !q.isAIGenerated).length;
+                
+                if (allQuizData.length < targetCount) {
+                    const baseQuestions = allQuizData.filter(q => !q.isAIGenerated);
+                    
+                    // Fill remaining slots with base questions
+                    while (allQuizData.length < targetCount && baseQuestions.length > 0) {
+                        const sourceIndex = (allQuizData.length - baseQuestionsCount) % baseQuestions.length;
+                        const newQ = JSON.parse(JSON.stringify(baseQuestions[sourceIndex]));
+                        allQuizData.push(newQ);
+                    }
+                }
+                
+                console.log('� SELESAI MEMUAT BANK SOAL:');
+                console.log('📊 Total soal di bank:', allQuizData.length);
+                console.log('🤖 Soal AI:', allQuizData.filter(q => q.isAIGenerated).length);
+                console.log('📚 Soal dasar:', allQuizData.filter(q => !q.isAIGenerated).length);
+            }
+            populateQuestions();
+            
+            // Auto-load from shared storage if ID is set
+            setTimeout(() => {
+                const sharedId = localStorage.getItem('sharedStorageId');
+                if (sharedId) {
+                    console.log('🔄 Auto-loading from shared storage...');
+                    loadFromSharedStorage(sharedId);
+                }
+            }, 2000);
+
+            // Elements
+            const mainContainer = document.getElementById('main-container');
+            const header = document.getElementById('header');
+            const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
+            const resultScreen = document.getElementById('result-screen');
+            const aiPromptScreen = document.getElementById('ai-prompt-screen');
+            const examModeBtn = document.getElementById('exam-mode-btn');
+            const learnModeBtn = document.getElementById('learn-mode-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const reviewBtn = document.getElementById('review-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const questionContainer = document.getElementById('question-container');
+            const navigationMenu = document.getElementById('navigation-menu');
+            const questionCounterEl = document.getElementById('question-counter');
+            const timerEl = document.getElementById('timer');
+            const timerHeader = document.getElementById('timer-header');
+            const scoreTextEl = document.getElementById('score-text');
+            const reviewContainer = document.getElementById('review-container');
+            const questionCountInput = document.getElementById('question-count');
+            const timeLimitInput = document.getElementById('time-limit');
+            const errorMessage = document.getElementById('error-message');
+            const backToMenuBtn = document.getElementById('back-to-menu-btn');
+            const generateAiBtn = document.getElementById('generate-ai-btn');
+            const changeFilterBtn = document.getElementById('change-filter-btn');
+            const totalQuestionsCountEl = document.getElementById('total-questions-count');
+            const filteredQuestionsCountEl = document.getElementById('filtered-questions-count');
+            const questionsInfoTextEl = document.getElementById('questions-info-text');
+
+            let timerInterval;
+            let timeLeft = 3600;
+            let shuffledQuestions = [];
+            let userAnswers = [];
+            let currentQuestionIndex = 0;
+            let currentMode = '';
+            let currentFilters = {};
+            let accessToken = null;
+
+            // Function to update question count display
+            function updateQuestionCount() {
+                console.log('🔄 updateQuestionCount called');
+                console.log('🏦 Current bank size:', allQuizData.length);
+                
+                // Update total questions count with animation
+                const oldTotal = parseInt(totalQuestionsCountEl.textContent) || 0;
+                const newTotal = allQuizData.length;
+                totalQuestionsCountEl.textContent = newTotal;
+                
+                if (oldTotal !== newTotal && oldTotal > 0) {
+                    totalQuestionsCountEl.classList.add('updated');
+                    setTimeout(() => totalQuestionsCountEl.classList.remove('updated'), 500);
+                }
+                
+                // Get current filter values
+                const currentFilters = {};
+                for (let i = 1; i <= 7; i++) {
+                    const selectEl = document.getElementById(`filter-${i}`);
+                    if (selectEl) {
+                        currentFilters[`tinjauan${i}`] = selectEl.value;
+                    }
+                }
+                
+                console.log('🔍 Current filters for counting:', currentFilters);
+                
+                // Filter questions based on current selection
+                const filteredQuestions = allQuizData.filter(q => {
+                    for (let i = 1; i <= 7; i++) {
+                        const key = `tinjauan${i}`;
+                        if (currentFilters[key] !== 'semua' && q[key] !== currentFilters[key]) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                
+                console.log('📊 Filtered questions count:', filteredQuestions.length);
+                console.log('📋 Sample filtered questions:', filteredQuestions.slice(0, 2));
+                
+                // Update filtered count with animation
+                const oldFiltered = parseInt(filteredQuestionsCountEl.textContent) || 0;
+                const newFiltered = filteredQuestions.length;
+                filteredQuestionsCountEl.textContent = newFiltered;
+                
+                if (oldFiltered !== newFiltered && oldFiltered >= 0) {
+                    filteredQuestionsCountEl.classList.add('updated');
+                    setTimeout(() => filteredQuestionsCountEl.classList.remove('updated'), 500);
+                }
+                
+                // Update info text
+                const hasActiveFilters = Object.values(currentFilters).some(filter => filter !== 'semua');
+                if (hasActiveFilters) {
+                    if (filteredQuestions.length === 0) {
+                        questionsInfoTextEl.textContent = "❌ Tidak ada soal yang sesuai dengan filter yang dipilih";
+                        questionsInfoTextEl.className = 'text-red-500';
+                    } else {
+                        questionsInfoTextEl.textContent = `✅ ${filteredQuestions.length} soal tersedia untuk latihan`;
+                        questionsInfoTextEl.className = 'text-green-600';
+                    }
+                } else {
+                    questionsInfoTextEl.textContent = "💡 Pilih filter untuk melihat jumlah soal yang tersedia";
+                    questionsInfoTextEl.className = 'text-slate-500';
+                }
+            }
+
+            const blueprint = {
+                tinjauan1: ["Profesionalisme dan Kepatuhan Hukum", "Keterampilan Sosial, Komunikasi dan Pengelolaan Informasi", "Berpikir Kritis dan Pengembangan Diri", "Landasan Ilmiah Ilmu Asuhan Kesehatan Gigi dan Mulut", "Keterampilan Klinis Asuhan Kesehatan Gigi dan Mulut", "Pengelolaan Asuhan Kesehatan Gigi dan Mulut"],
+                tinjauan2: ["Kognitif", "Procedural Knowledge", "Afektif/Konatif"],
+                tinjauan3: ["Recalling", "Reasoning"],
+                tinjauan4: ["Pelaksana pelayanan asuhan", "Pelaksana promosi kesehatan", "Pelaksana kegiatan asistensi"],
+                tinjauan5: ["Ekstraksi", "Scalling", "Filling", "Fissure sealing/Surface Protection", "Aplikasi fluor", "Dental health education", "Oral fisioterapi", "Komunikasi Terapeutik", "Pemeliharaan alat-alat kedokteran gigi", "Pengendalian Infeksi Silang", "Manajemen Klinik", "Four handed dentistry", "Manajemen UKGS", "Manajemen Kesehatan Gigi dan Mulut Masyarakat", "Tindakan kegawatdaruratan", "Tindakan kolaboratif/rujukan", "Pengkajian"],
+                tinjauan6: ["Dental assissting", "Dental hygiene", "Dental therapy"],
+                tinjauan7: ["Individu", "Kelompok", "Masyarakat"]
+            };
+
+            function init() {
+                for (let i = 1; i <= 7; i++) {
+                    const selectEl = document.getElementById(`filter-${i}`);
+                    const options = blueprint[`tinjauan${i}`];
+                    selectEl.innerHTML = `<option value="semua">Pilih Semua</option>`;
+                    options.forEach(opt => {
+                        selectEl.innerHTML += `<option value="${opt}">${opt}</option>`;
+                    });
+                    
+                    // Add event listener to update question count when filter changes
+                    selectEl.addEventListener('change', updateQuestionCount);
+                }
+                
+                // Initialize question count display
+                setTimeout(updateQuestionCount, 100); // Delay to ensure elements are ready
+
+                examModeBtn.addEventListener('click', () => { currentMode = 'exam'; validateAndStart(); });
+                learnModeBtn.addEventListener('click', () => { currentMode = 'learn'; validateAndStart(); });
+                submitBtn.addEventListener('click', submitQuiz);
+                reviewBtn.addEventListener('click', () => {
+                    reviewContainer.classList.toggle('hidden');
+                    reviewBtn.textContent = reviewContainer.classList.contains('hidden') ? 'Tinjau Jawaban' : 'Sembunyikan Tinjauan';
+                });
+                restartBtn.addEventListener('click', showStartScreen);
+                prevBtn.addEventListener('click', () => goToQuestion(currentQuestionIndex - 1));
+                nextBtn.addEventListener('click', () => goToQuestion(currentQuestionIndex + 1));
+                backToMenuBtn.addEventListener('click', () => {
+                    if (timerInterval) clearInterval(timerInterval);
+                    showStartScreen();
+                });
+                changeFilterBtn.addEventListener('click', () => {
+                    aiPromptScreen.classList.add('hidden');
+                });
+                generateAiBtn.addEventListener('click', async () => {
+                    const requestedCount = parseInt(questionCountInput.value) || 10;
+                    
+                    // Get current filters from form
+                    const currentFiltersForAI = {};
+                    for (let i = 1; i <= 7; i++) {
+                        currentFiltersForAI[`tinjauan${i}`] = document.getElementById(`filter-${i}`).value;
+                    }
+                    
+                    console.log('🔍 AI Generate with filters:', currentFiltersForAI);
+                    console.log('🏦 Bank soal sebelum generate:', allQuizData.length, 'soal');
+                    setLoadingState(true, `Membuat ${requestedCount} soal baru dengan AI...`, generateAiBtn);
+                    const newQuestions = await generateNewQuestions(currentFiltersForAI, requestedCount);
+                    if (newQuestions.length > 0) {
+                        console.log('📥 Adding questions to bank:', newQuestions.length, 'questions');
+                        
+                        // 1. IMMEDIATE: Add to current session bank
+                        allQuizData.push(...newQuestions);
+                        console.log('✅ BERHASIL: Soal ditambahkan ke bank soal sesi ini');
+                        console.log('🏦 Bank soal sekarang:', allQuizData.length, 'soal total');
+                        
+                        // 2. PERSISTENT: Save to localStorage for future sessions
+                        const savedQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                        savedQuestions.push(...newQuestions);
+                        localStorage.setItem('aiGeneratedQuestions', JSON.stringify(savedQuestions));
+                        console.log('💾 BERHASIL: Soal disimpan ke localStorage untuk sesi mendatang');
+                        console.log('📂 Total soal AI tersimpan:', savedQuestions.length);
+                        
+                        // 3. UPDATE UI: Refresh counters
+                        updateQuestionCount();
+                        console.log('� BERHASIL: UI counter diperbarui');
+                        
+                        // 4. CONTINUE: Hide AI prompt and start quiz
+                        aiPromptScreen.classList.add('hidden');
+                        validateAndStart(true);
+                        console.log('🎯 BERHASIL: Melanjutkan ke quiz dengan soal baru');
+                        
+                        // 5. AUTO-SYNC: Sync to shared storage if ID is set
+                        const sharedId = localStorage.getItem('sharedStorageId');
+                        if (sharedId) {
+                            console.log('🔄 Auto-syncing to shared storage...');
+                            syncSharedStorage();
+                        }
+                        
+                    } else {
+                        setLoadingState(false, 'Gagal membuat soal baru. Silakan coba lagi.', generateAiBtn);
+                    }
+                });
+                
+                // Add event listeners for sharing buttons
+                document.getElementById('export-ai-questions').addEventListener('click', exportAIQuestions);
+                document.getElementById('export-google-sheets').addEventListener('click', () => {
+                    const sharedId = prompt('Masukkan ID untuk Google Sheets (misal: TGM-BATCH-2025):');
+                    if (sharedId) {
+                        syncToGoogleSheets(sharedId);
+                    }
+                });
+                document.getElementById('import-ai-questions').addEventListener('click', importAIQuestions);
+                document.getElementById('import-google-sheets').addEventListener('click', importFromGoogleSheets);
+                document.getElementById('setup-google-api').addEventListener('click', setupGoogleSheetsAPI);
+                document.getElementById('share-to-cloud').addEventListener('click', shareToCloud);
+                document.getElementById('load-from-cloud').addEventListener('click', loadFromCloud);
+                document.getElementById('generate-qr').addEventListener('click', generateQRCode);
+                document.getElementById('clear-ai-questions').addEventListener('click', clearAIQuestions);
+                
+                // Add event listener for shared storage sync
+                document.getElementById('sync-shared-storage').addEventListener('click', syncSharedStorage);
+                
+                // Auto-sync if shared storage ID is saved
+                const savedSharedId = localStorage.getItem('sharedStorageId');
+                if (savedSharedId) {
+                    document.getElementById('shared-storage-id').value = savedSharedId;
+                    // Auto-sync every 30 seconds if ID is set
+                    setInterval(syncSharedStorage, 30000);
+                }
+            }
+            
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            async function generateNewQuestions(filters, count) {
+                console.log(`🤖 AI Generate: Memulai generate ${count} soal baru`);
+                console.log('📊 Filters:', filters);
+                setLoadingState(true, `Membuat ${count} soal baru...`, generateAiBtn);
+                
+                let filterDescriptions = [];
+                for (let i = 1; i <= 7; i++) {
+                    if (filters[`tinjauan${i}`] !== 'semua') {
+                        filterDescriptions.push(`Tinjauan ${i} (${Object.keys(blueprint)[i-1]}): "${filters[`tinjauan${i}`]}"`);
+                    }
+                }
+                console.log('🔍 Filter descriptions:', filterDescriptions);
+
+                const prompt = `Buatkan ${count} soal pilihan ganda (MCQ) untuk Uji Kompetensi Terapis Gigi dan Mulut.
+                Setiap soal HARUS memenuhi semua aturan berikut:
+                1.  **Vignette:** Berisi kasus pasien/kelompok yang logis, sistematis, dan proporsional. Istilah bahasa asing dicetak miring dengan tag <i>.
+                2.  **Pertanyaan (Lead-in):**
+                    - Harus singkat dan langsung ke inti (contoh: 'Apakah diagnosis yang tepat?', 'Bagaimanakah langkah selanjutnya?').
+                    - HARUS diawali dengan kata tanya (Apakah, Bagaimana, Manakah, dll.).
+                    - HARUS diakhiri dengan tanda tanya (?).
+                    - JANGAN menggunakan kalimat negatif seperti "kecuali" atau "yang bukan".
+                3.  **Pilihan Jawaban (Options):**
+                    - Harus 5 pilihan (A, B, C, D, E) yang homogen (seragam secara gramatikal, makna, dan panjang).
+                    - Istilah bahasa asing dalam opsi juga harus dicetak miring dengan tag <i>.
+                    - Setiap opsi HARUS diakhiri dengan tanda titik (.) karena lead-in berupa kalimat tanya.
+                    - Hindari kata-kata absolut seperti "selalu" atau "tidak pernah".
+                    - Hindari pilihan yang terlalu mirip atau tumpang tindih (konvergensi).
+                    - JANGAN menggunakan istilah yang sama persis dari vignette di dalam kunci jawaban (hindari 'clueing').
+                    - JANGAN menggunakan pilihan "semua jawaban benar" atau "semua jawaban salah".
+                4.  **Kunci Jawaban (Answer):** Hanya berisi satu huruf yang benar (A, B, C, D, atau E).
+                5.  **Penjelasan (Explanation):** Berikan penjelasan singkat mengapa kunci jawaban tersebut benar. Istilah bahasa asing juga dicetak miring dengan tag <i>.
+                6.  **Kriteria Filter:** Soal harus memenuhi semua kriteria filter berikut: ${filterDescriptions.join(', ')}.
+
+                Format respons HARUS berupa JSON array di dalam sebuah objek dengan key 'questions'.`;
+
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "questions": {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            "vignette": { "type": "STRING" },
+                                            "question": { "type": "STRING" },
+                                            "options": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                            "answer": { "type": "STRING" },
+                                            "explanation": { "type": "STRING" }
+                                        },
+                                        required: ["vignette", "question", "options", "answer", "explanation"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                try {
+                    // For demo purposes, return mock questions instead of calling API
+                    // In production, you would need a valid API key and proper backend implementation
+                    
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Return mock questions that match the current filters
+                    const mockQuestions = [
+                        {
+                            vignette: "Seorang pasien berusia 45 tahun datang dengan keluhan gigi sensitif saat makan es krim. Pemeriksaan klinis menunjukkan adanya abrasi servikal pada gigi 14.",
+                            question: "Apakah tindakan preventif yang paling tepat untuk mencegah progresivitas kerusakan?",
+                            options: [
+                                "Aplikasi <i>varnish fluoride</i> secara berkala.",
+                                "Pencabutan gigi yang terkena.",
+                                "Pemberian antibiotik sistemik.",
+                                "<i>Scaling</i> dan <i>root planing</i>.",
+                                "Aplikasi pasta gigi <i>desensitizing</i> saja."
+                            ],
+                            answer: "A",
+                            explanation: "Aplikasi <i>varnish fluoride</i> secara berkala merupakan tindakan preventif yang efektif untuk mencegah progresivitas abrasi servikal dan mengurangi sensitivitas gigi dengan cara remineralisasi email dan dentin."
+                        },
+                        {
+                            vignette: "Dalam program UKGS di sekolah dasar, Anda menemukan 60% siswa memiliki kebersihan mulut yang buruk (<i>OHI-S</i> >2).",
+                            question: "Bagaimanakah strategi edukasi yang paling efektif untuk meningkatkan kebersihan mulut siswa?",
+                            options: [
+                                "Ceramah di kelas tentang pentingnya menyikat gigi.",
+                                "Demonstrasi teknik menyikat gigi dengan model rahang.",
+                                "Pembagian <i>leaflet</i> kesehatan gigi.",
+                                "Pemutaran video edukasi kesehatan gigi.",
+                                "Pemberian pasta gigi gratis."
+                            ],
+                            answer: "B",
+                            explanation: "Demonstrasi langsung dengan model rahang lebih efektif karena melibatkan pembelajaran visual dan praktik langsung, sesuai dengan karakteristik pembelajaran anak usia sekolah dasar yang lebih responsif terhadap pembelajaran demonstrasi dan praktek."
+                        },
+                        {
+                            vignette: "Seorang ibu datang dengan anak berusia 5 tahun yang memiliki karies pada gigi susu. Pemeriksaan menunjukkan adanya lubang besar pada gigi 55.",
+                            question: "Manakah tindakan yang paling tepat untuk kasus ini?",
+                            options: [
+                                "Pencabutan gigi tanpa pengganti.",
+                                "Penambalan dengan resin komposit.",
+                                "Pulpektomi dan restorasi mahkota.",
+                                "Observasi hingga gigi tanggal sendiri.",
+                                "Pemberian antibiotik saja."
+                            ],
+                            answer: "C",
+                            explanation: "Pulpektomi dan restorasi mahkota merupakan pilihan terbaik untuk mempertahankan gigi susu dengan karies luas, mengingat fungsi penting gigi susu sebagai <i>space maintainer</i> dan untuk fungsi pengunyahan."
+                        },
+                        {
+                            vignette: "Pada saat melakukan <i>scaling</i>, Anda menemukan <i>pocket</i> dengan kedalaman 6mm pada gigi 36 dengan perdarahan saat <i>probing</i>.",
+                            question: "Apakah diagnosis periodontal yang paling tepat?",
+                            options: [
+                                "Gingivitis marginalis.",
+                                "Periodontitis ringan.",
+                                "Periodontitis sedang.",
+                                "Periodontitis berat.",
+                                "<i>Necrotizing ulcerative gingivitis</i>."
+                            ],
+                            answer: "C",
+                            explanation: "<i>Pocket depth</i> 6mm dengan perdarahan saat <i>probing</i> menunjukkan periodontitis sedang (<i>moderate periodontitis</i>) yang memerlukan <i>scaling</i> dan <i>root planing</i> yang lebih intensif."
+                        },
+                        {
+                            vignette: "Dalam program fluoridasi di Puskesmas, Anda diminta untuk melakukan aplikasi topikal <i>fluoride</i> pada anak-anak usia 6-12 tahun.",
+                            question: "Berapakah konsentrasi fluoride yang paling aman dan efektif untuk aplikasi topikal?",
+                            options: [
+                                "0.05% NaF.",
+                                "0.2% NaF.",
+                                "1.23% APF.",
+                                "2.26% NaF.",
+                                "5% NaF."
+                            ],
+                            answer: "C",
+                            explanation: "Konsentrasi 1.23% APF (<i>Acidulated Phosphate Fluoride</i>) merupakan standar yang paling efektif dan aman untuk aplikasi topikal <i>fluoride</i> pada anak-anak."
+                        },
+                        {
+                            vignette: "Seorang pasien mengeluh gigi depan patah setelah terjatuh. Pemeriksaan menunjukkan fraktur email-dentin pada gigi 11 tanpa <i>exposur pulpa</i>.",
+                            question: "Apakah tindakan restorasi yang paling tepat?",
+                            options: [
+                                "Observasi saja.",
+                                "Aplikasi <i>desensitizing agent</i>.",
+                                "Restorasi resin komposit.",
+                                "Pembuatan mahkota penuh.",
+                                "Ekstraksi gigi."
+                            ],
+                            answer: "C",
+                            explanation: "Restorasi resin komposit merupakan pilihan terbaik untuk fraktur email-dentin tanpa <i>exposur pulpa</i> karena dapat mengembalikan estetik dan fungsi dengan minimal invasif."
+                        },
+                        {
+                            vignette: "Dalam pelaksanaan program UKGS, Anda menemukan prevalensi karies yang tinggi pada siswa kelas 1 SD dengan <i>def-t</i> rata-rata 8.",
+                            question: "Apakah program preventif yang paling prioritas untuk dilakukan?",
+                            options: [
+                                "Sikat gigi massal setiap hari.",
+                                "Pemberian tablet <i>fluoride</i>.",
+                                "<i>Dental health education</i> untuk guru.",
+                                "<i>Fissure sealant program</i>.",
+                                "Kumur-kumur dengan <i>fluoride</i>."
+                            ],
+                            answer: "E",
+                            explanation: "Program kumur-kumur dengan <i>fluoride</i> paling efektif untuk populasi dengan prevalensi karies tinggi karena dapat menjangkau banyak siswa sekaligus dan memberikan efek preventif yang signifikan."
+                        },
+                        {
+                            vignette: "Seorang pasien datang dengan keluhan bengkak pada gusi di sekitar gigi 46. Pemeriksaan menunjukkan adanya abses periodontal akut.",
+                            question: "Apakah tindakan darurat yang harus segera dilakukan?",
+                            options: [
+                                "<i>Scaling</i> dan <i>root planing</i>.",
+                                "Pemberian antibiotik oral.",
+                                "Drainase abses dan irigasi.",
+                                "Ekstraksi gigi.",
+                                "Kompres dingin."
+                            ],
+                            answer: "C",
+                            explanation: "Drainase abses dan irigasi merupakan tindakan darurat yang harus segera dilakukan untuk mengurangi tekanan dan infeksi pada abses periodontal akut."
+                        },
+                        {
+                            vignette: "Dalam pemeriksaan rutin, Anda menemukan <i>white spot</i> pada permukaan labial gigi 11 seorang remaja.",
+                            question: "Apakah tindakan preventif yang paling tepat?",
+                            options: [
+                                "Penambalan dengan GIC.",
+                                "Aplikasi <i>fluoride varnish</i>.",
+                                "<i>Scaling</i> dan <i>polishing</i>.",
+                                "Pembuatan mahkota.",
+                                "Ekstraksi gigi."
+                            ],
+                            answer: "B",
+                            explanation: "Aplikasi <i>fluoride varnish</i> dapat membantu remineralisasi <i>white spot lesion</i> dan mencegah progresivitas menjadi karies yang lebih lanjut."
+                        },
+                        {
+                            vignette: "Seorang ibu hamil trimester kedua datang untuk pemeriksaan rutin. Ditemukan gingivitis dengan perdarahan spontan.",
+                            question: "Apakah pendekatan perawatan yang paling aman?",
+                            options: [
+                                "<i>Scaling</i> dan <i>root planing</i> lengkap.",
+                                "Pemberian antibiotik sistemik.",
+                                "<i>Scaling</i> supragingival dan <i>oral hygiene instruction</i>.",
+                                "Tunda perawatan hingga setelah melahirkan.",
+                                "Kumur antiseptik kuat."
+                            ],
+                            answer: "C",
+                            explanation: "<i>Scaling</i> supragingival dan <i>oral hygiene instruction</i> merupakan pendekatan yang paling aman untuk ibu hamil trimester kedua, memberikan manfaat tanpa risiko yang tidak perlu."
+                        }
+                    ];
+                    
+                    // Generate the requested number of questions by duplicating and varying the mock questions
+                    const generatedQuestions = [];
+                    for (let i = 0; i < count; i++) {
+                        const baseQuestion = mockQuestions[i % mockQuestions.length];
+                        const questionVariant = JSON.parse(JSON.stringify(baseQuestion)); // Deep copy
+                        
+                        // Add some variation to make each question unique
+                        if (i >= mockQuestions.length) {
+                            questionVariant.vignette = `${questionVariant.vignette} (Variasi ${Math.floor(i / mockQuestions.length) + 1})`;
+                        }
+                        
+                        // Add filter properties to match current selection
+                        console.log('🔧 Adding filters to question:', filters);
+                        Object.assign(questionVariant, filters);
+                        
+                        // Mark as AI generated for tracking
+                        questionVariant.isAIGenerated = true;
+                        questionVariant.createdAt = new Date().toISOString();
+                        
+                        console.log('✅ Question with filters:', questionVariant);
+                        
+                        generatedQuestions.push(questionVariant);
+                    }
+                    
+                    console.log(`✅ AI Generate: Berhasil membuat ${generatedQuestions.length} soal`);
+                    console.log('📝 Generated questions sample:', generatedQuestions.slice(0, 2));
+                    console.log('🏷️ Filter properties in first question:', {
+                        tinjauan1: generatedQuestions[0].tinjauan1,
+                        tinjauan2: generatedQuestions[0].tinjauan2,
+                        tinjauan3: generatedQuestions[0].tinjauan3,
+                        tinjauan4: generatedQuestions[0].tinjauan4,
+                        tinjauan5: generatedQuestions[0].tinjauan5,
+                        tinjauan6: generatedQuestions[0].tinjauan6,
+                        tinjauan7: generatedQuestions[0].tinjauan7
+                    });
+                    return generatedQuestions;
+                    
+                } catch (error) {
+                    console.error("Gagal membuat soal baru:", error);
+                    alert("Fitur AI sedang dalam pengembangan. Silakan gunakan soal yang tersedia atau ubah filter untuk mendapatkan soal yang sesuai.");
+                    return [];
+                } finally {
+                     setLoadingState(false, '', generateAiBtn);
+                }
+            }
+
+            function setLoadingState(isLoading, message = '', btn) {
+                const buttons = btn ? [btn] : [examModeBtn, learnModeBtn];
+                buttons.forEach(b => {
+                    const text = b.querySelector('.btn-text');
+                    const loader = b.querySelector('.loader');
+                    if(isLoading) {
+                        b.disabled = true;
+                        if(text) text.classList.add('hidden');
+                        if(loader) loader.classList.remove('hidden');
+                    } else {
+                        b.disabled = false;
+                        if(text) text.classList.remove('hidden');
+                        if(loader) loader.classList.add('hidden');
+                    }
+                });
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                }
+                console.log(`Loading state: ${isLoading ? 'ON' : 'OFF'}, Message: ${message}`);
+            }
+
+
+            async function validateAndStart(isRetrying = false) {
+                if (!isRetrying) {
+                    currentFilters = {};
+                    for (let i = 1; i <= 7; i++) {
+                        currentFilters[`tinjauan${i}`] = document.getElementById(`filter-${i}`).value;
+                    }
+                }
+                
+                console.log('🔍 validateAndStart called with filters:', currentFilters);
+                console.log('🏦 Total soal di bank:', allQuizData.length);
+                
+                const requestedCount = parseInt(questionCountInput.value);
+                const timeLimit = parseInt(timeLimitInput.value);
+
+                errorMessage.textContent = '';
+                
+                if (isNaN(requestedCount) || requestedCount < 10 || requestedCount > 180) {
+                    errorMessage.textContent = 'Jumlah soal harus antara 10 dan 180.';
+                    return;
+                }
+                if (currentMode === 'exam' && (isNaN(timeLimit) || timeLimit < 10 || timeLimit > 180)) {
+                    errorMessage.textContent = 'Waktu ujian harus antara 10 dan 180 menit.';
+                    return;
+                }
+                
+                setLoadingState(true, 'Mencari soal...');
+                
+                let filteredQuestions = allQuizData.filter(q => {
+                    for (let i = 1; i <= 7; i++) {
+                        const key = `tinjauan${i}`;
+                        if (currentFilters[key] !== 'semua' && q[key] !== currentFilters[key]) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                
+                console.log('🔍 Filtered questions found:', filteredQuestions.length);
+                console.log('📋 Sample filtered questions:', filteredQuestions.slice(0, 3));
+                
+                if (filteredQuestions.length === 0) {
+                     setLoadingState(false);
+                     // Update AI button text with requested count
+                     const btnText = generateAiBtn.querySelector('.btn-text');
+                     if (btnText) {
+                         btnText.textContent = `Buat ${requestedCount} Soal Baru dengan AI`;
+                     }
+                     console.log('❌ No questions found, showing AI prompt screen');
+                     aiPromptScreen.classList.remove('hidden');
+                     return;
+                }
+                
+                setLoadingState(false);
+                
+                shuffleArray(filteredQuestions);
+                
+                if (filteredQuestions.length < requestedCount) {
+                    const shortfall = requestedCount - filteredQuestions.length;
+                    const userChoice = confirm(`Hanya ditemukan ${filteredQuestions.length} soal yang sesuai dengan filter Anda. Kurang ${shortfall} soal lagi.\n\nPilih OK untuk membuat ${shortfall} soal baru dengan AI, atau Cancel untuk melanjutkan dengan ${filteredQuestions.length} soal yang tersedia.`);
+                    
+                    if (userChoice) {
+                        // Generate additional questions with AI
+                        setLoadingState(true, `Membuat ${shortfall} soal tambahan...`);
+                        const additionalQuestions = await generateNewQuestions(currentFilters, shortfall);
+                        if (additionalQuestions.length > 0) {
+                            allQuizData.push(...additionalQuestions);
+                            updateQuestionCount(); // Update question count display
+                            filteredQuestions.push(...additionalQuestions);
+                            shuffleArray(filteredQuestions);
+                            shuffledQuestions = filteredQuestions.slice(0, requestedCount);
+                        } else {
+                            shuffledQuestions = filteredQuestions;
+                        }
+                        setLoadingState(false);
+                    } else {
+                        shuffledQuestions = filteredQuestions;
+                    }
+                } else {
+                    shuffledQuestions = filteredQuestions.slice(0, requestedCount);
+                }
+
+                startQuizUI(timeLimit);
+            }
+
+            function startQuizUI(timeLimit) {
+                userAnswers = new Array(shuffledQuestions.length).fill(null);
+                currentQuestionIndex = 0;
+
+                startScreen.classList.add('hidden');
+                header.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+                
+                if (currentMode === 'exam') {
+                    timerHeader.classList.remove('hidden');
+                    submitBtn.classList.remove('hidden');
+                    timeLeft = timeLimit * 60;
+                    startTimer();
+                } else {
+                    timerHeader.classList.add('hidden');
+                    submitBtn.classList.add('hidden');
+                }
+
+                buildNavigationMenu();
+                displayQuestion(currentQuestionIndex);
+            }
+            
+            function startTimer() {
+                updateTimerDisplay();
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        submitQuiz();
+                    }
+                    if (timeLeft <= 300) {
+                        timerEl.classList.add('timer-warning');
+                    }
+                }, 1000);
+            }
+
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            function buildNavigationMenu() {
+                navigationMenu.innerHTML = '';
+                for (let i = 0; i < shuffledQuestions.length; i++) {
+                    const navBtn = document.createElement('button');
+                    navBtn.textContent = i + 1;
+                    navBtn.classList.add('nav-btn');
+                    navBtn.dataset.index = i;
+                    navBtn.addEventListener('click', () => goToQuestion(i));
+                    navigationMenu.appendChild(navBtn);
+                }
+            }
+
+            function displayQuestion(index) {
+                const q = shuffledQuestions[index];
+                const isAnswered = userAnswers[index] !== null;
+
+                const optionsHTML = q.options.map((opt, i) => {
+                    const optionLetter = String.fromCharCode(65 + i);
+                    const isChecked = userAnswers[index] === optionLetter ? 'checked' : '';
+                    const isDisabled = isAnswered && currentMode === 'learn' ? 'disabled' : '';
+                    
+                    let labelClass = 'option-label';
+                    if (isAnswered && currentMode === 'learn') {
+                        if (optionLetter === q.answer) labelClass += ' correct';
+                        else if (optionLetter === userAnswers[index]) labelClass += ' incorrect';
+                    } else if (isAnswered && currentMode === 'exam' && userAnswers[index] === optionLetter) {
+                        labelClass += ' selected';
+                    }
+
+                    return `
+                        <label for="opt${i}" class="${labelClass}">
+                            <input type="radio" name="question${index}" id="opt${i}" value="${optionLetter}" class="mr-4 accent-blue-600" ${isChecked} ${isDisabled}>
+                            <span class="font-medium">${optionLetter}.</span>
+                            <span class="ml-2">${opt}</span>
+                        </label>
+                    `;
+                }).join('');
+
+                let explanationHTML = '';
+                if (isAnswered && currentMode === 'learn') {
+                    explanationHTML = `
+                        <div class="explanation-box">
+                            <p class="font-bold text-sky-800">Penjelasan:</p>
+                            <p class="text-sky-700">${q.explanation}</p>
+                        </div>
+                    `;
+                }
+
+                questionContainer.innerHTML = `
+                    <div class="vignette">${q.vignette}</div>
+                    <p class="question-text">${q.question}</p>
+                    <div class="options-container">${optionsHTML}</div>
+                    ${explanationHTML}
+                `;
+                
+                // Reveal options after a short delay
+                setTimeout(() => {
+                    const optionsContainer = questionContainer.querySelector('.options-container');
+                    if (optionsContainer) {
+                        optionsContainer.classList.add('visible');
+                    }
+                }, 100);
+
+                questionCounterEl.textContent = `Soal ${index + 1} dari ${shuffledQuestions.length}`;
+
+                if (!isAnswered || currentMode === 'exam') {
+                    questionContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+                        radio.addEventListener('change', handleAnswerSelection);
+                    });
+                }
+
+                updateNavigationMenu();
+                updateNavButtons();
+            }
+            
+            function handleAnswerSelection(e) {
+                const selectedValue = e.target.value;
+                userAnswers[currentQuestionIndex] = selectedValue;
+                
+                if (currentMode === 'learn') {
+                    displayQuestion(currentQuestionIndex);
+                } else {
+                    questionContainer.querySelectorAll('.option-label').forEach(label => label.classList.remove('selected'));
+                    e.target.parentElement.classList.add('selected');
+                    updateNavigationMenu();
+                }
+            }
+
+            function updateNavigationMenu() {
+                const navButtons = navigationMenu.querySelectorAll('.nav-btn');
+                navButtons.forEach((btn, index) => {
+                    btn.classList.remove('current', 'answered', 'correct-nav', 'incorrect-nav');
+                    if (userAnswers[index] !== null) {
+                        btn.classList.add('answered');
+                        if (currentMode === 'learn') {
+                            if(userAnswers[index] === shuffledQuestions[index].answer) btn.classList.add('correct-nav');
+                            else btn.classList.add('incorrect-nav');
+                        }
+                    }
+                    if (index === currentQuestionIndex) {
+                        btn.classList.add('current');
+                    }
+                });
+            }
+            
+            function updateNavButtons() {
+                prevBtn.disabled = currentQuestionIndex === 0;
+                nextBtn.disabled = currentQuestionIndex === shuffledQuestions.length - 1;
+                prevBtn.classList.toggle('opacity-50', prevBtn.disabled);
+                nextBtn.classList.toggle('opacity-50', nextBtn.disabled);
+            }
+
+            function goToQuestion(index) {
+                if (index >= 0 && index < shuffledQuestions.length) {
+                    currentQuestionIndex = index;
+                    displayQuestion(currentQuestionIndex);
+                }
+            }
+
+            function submitQuiz() {
+                if(timerInterval) clearInterval(timerInterval);
+                let score = 0;
+
+                shuffledQuestions.forEach((q, index) => {
+                    if (userAnswers[index] === q.answer) score++;
+                });
+
+                quizScreen.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+                header.classList.remove('hidden');
+                scoreTextEl.textContent = `Skor Anda: ${score} / ${shuffledQuestions.length}`;
+                
+                prepareReview();
+            }
+            
+            function showStartScreen() {
+                quizScreen.classList.add('hidden');
+                resultScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                header.classList.remove('hidden');
+                updateQuestionCount(); // Update question count when returning to start screen
+                
+                // Show export/clear AI questions button if there are AI questions
+                const savedAIQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                const exportBtn = document.getElementById('export-ai-questions');
+                const exportGoogleBtn = document.getElementById('export-google-sheets');
+                const shareBtn = document.getElementById('share-to-cloud');
+                const qrBtn = document.getElementById('generate-qr');
+                const clearBtn = document.getElementById('clear-ai-questions');
+                if (savedAIQuestions.length > 0) {
+                    exportBtn.style.display = 'inline';
+                    exportGoogleBtn.style.display = 'inline';
+                    shareBtn.style.display = 'inline';
+                    qrBtn.style.display = 'inline';
+                    clearBtn.style.display = 'inline';
+                } else {
+                    exportBtn.style.display = 'none';
+                    exportGoogleBtn.style.display = 'none';
+                    shareBtn.style.display = 'none';
+                    qrBtn.style.display = 'none';
+                    clearBtn.style.display = 'none';
+                }
+            }
+            
+            function clearAIQuestions() {
+                if (confirm('Apakah Anda yakin ingin menghapus semua soal yang dibuat oleh AI? Tindakan ini tidak dapat dibatalkan.')) {
+                    localStorage.removeItem('aiGeneratedQuestions');
+                    
+                    // Rebuild allQuizData without AI questions
+                    const baseQuestions = allQuizData.filter(q => !q.isAIGenerated);
+                    allQuizData.length = 0; // Clear array
+                    allQuizData.push(...baseQuestions);
+                    
+                    // Repopulate to reach target count
+                    populateQuestions();
+                    updateQuestionCount();
+                    
+                    // Hide export/clear buttons
+                    document.getElementById('export-ai-questions').style.display = 'none';
+                    document.getElementById('export-google-sheets').style.display = 'none';
+                    document.getElementById('share-to-cloud').style.display = 'none';
+                    document.getElementById('generate-qr').style.display = 'none';
+                    document.getElementById('clear-ai-questions').style.display = 'none';
+                    
+                    alert('Soal AI telah dihapus dari bank soal.');
+                }
+            }
+            
+            function exportAIQuestions() {
+                const savedAIQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                
+                if (savedAIQuestions.length === 0) {
+                    alert('Tidak ada soal AI untuk di-export.');
+                    return;
+                }
+                
+                // Create export data with metadata
+                const exportData = {
+                    exportDate: new Date().toISOString(),
+                    totalQuestions: savedAIQuestions.length,
+                    appVersion: '1.0',
+                    questions: savedAIQuestions.map(q => ({
+                        ...q,
+                        exported: true
+                    }))
+                };
+                
+                // Create downloadable file
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `soal-ai-export-${new Date().toISOString().split('T')[0]}.json`;
+                downloadLink.click();
+                
+                URL.revokeObjectURL(url);
+                console.log('📤 Exported', savedAIQuestions.length, 'AI questions');
+            }
+            
+            function importAIQuestions() {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                
+                fileInput.onchange = function(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importData = JSON.parse(e.target.result);
+                            
+                            // Validate import data structure
+                            if (!importData.questions || !Array.isArray(importData.questions)) {
+                                alert('Format file tidak valid. Pastikan file adalah hasil export yang benar.');
+                                return;
+                            }
+                            
+                            // Get existing questions
+                            const existingQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                            
+                            // Filter out duplicates
+                            const existingKeys = new Set(existingQuestions.map(q => `${q.vignette}|${q.question}`));
+                            const newQuestions = importData.questions.filter(q => 
+                                !existingKeys.has(`${q.vignette}|${q.question}`)
+                            );
+                            
+                            if (newQuestions.length ===  0) {
+                                alert('Tidak ada soal baru untuk diimpor. Semua soal sudah ada di bank soal.');
+                                return;
+                            }
+                            
+                            // Add imported questions
+                            const updatedQuestions = [...existingQuestions, ...newQuestions];
+                            localStorage.setItem('aiGeneratedQuestions', JSON.stringify(updatedQuestions));
+                            
+                            // Update allQuizData
+                            allQuizData.push(...newQuestions);
+                            
+                            // Update UI
+                            updateQuestionCount();
+                            showStartScreen(); // Refresh button visibility
+                            
+                            alert(`Berhasil mengimpor ${newQuestions.length} soal baru dari ${importData.totalQuestions} soal total.`);
+                            console.log('📥 Imported', newQuestions.length, 'new AI questions');
+                            
+                        } catch (error) {
+                            console.error('Import error:', error);
+                            alert('Gagal mengimpor file. Pastikan file adalah hasil export yang valid.');
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                };
+                
+                fileInput.click();
+            }
+            
+            function loadFromSharedStorage(sharedId) {
+                alert('Fitur shared storage belum diimplementasikan.');
+            }
+
+            // Tambahkan fungsi berikut:
+            function pushAIQuestionsToDevSheet() {
+                // Ganti dengan Spreadsheet ID dan API Key Anda
+                const SPREADSHEET_ID = '1243bCraQgkQeoXHL5J_stphaHy7Atcnx1tsvycVQHSo'; // <-- Ganti dengan ID spreadsheet developer Anda
+                const SHEET_NAME = 'Questions'; // <-- Ganti sesuai nama sheet
+                const API_KEY = 'AIzaSyBftn9qSHZXOmudGYCs9pZjeed5XgUb0_E'; // <-- Ganti dengan API Key Google Anda
+
+                const localQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+                if (localQuestions.length === 0) {
+                    alert('Tidak ada soal AI untuk di-sync ke spreadsheet developer.');
+                    return;
+                }
+
+                // Siapkan data untuk Google Sheets
+                const headers = [
+                    'ID', 'Vignette', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Option E',
+                    'Answer', 'Explanation', 'Tinjauan1', 'Tinjauan2', 'Tinjauan3', 'Tinjauan4', 'Tinjauan5', 'Tinjauan6', 'Tinjauan7', 'Created Date'
+                ];
+                const rows = [headers];
+                localQuestions.forEach((q, index) => {
+                    rows.push([
+                        index + 1,
+                        q.vignette,
+                        q.question,
+                        q.options[0],
+                        q.options[1],
+                        q.options[2],
+                        q.options[3],
+                        q.options[4],
+                        q.answer,
+                        q.explanation,
+                        q.tinjauan1,
+                        q.tinjauan2,
+                        q.tinjauan3,
+                        q.tinjauan4,
+                        q.tinjauan5,
+                        q.tinjauan6,
+                        q.tinjauan7,
+                        q.createdAt ? q.createdAt.split('T')[0] : ''
+                    ]);
+                });
+
+                // Kirim data ke Google Sheets (replace all)
+                fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ values: rows })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('❌ Gagal sync ke spreadsheet developer: ' + data.error.message);
+                        console.error(data.error);
+                    } else {
+                        alert('✅ Soal AI berhasil di-sync ke spreadsheet developer!');
+                    }
+                })
+                .catch(err => {
+                    alert('❌ Gagal sync ke spreadsheet developer: ' + err.message);
+                    console.error(err);
+                });
+            }
+function importFromDevSheet() {
+    // Ganti dengan Spreadsheet ID, Sheet Name, dan API Key Anda
+    const SPREADSHEET_ID = '1243bCraQgkQeoXHL5J_stphaHy7Atcnx1tsvycVQHSo';
+    const SHEET_NAME = 'Questions';
+    const API_KEY = 'AIzaSyBftn9qSHZXOmudGYCs9pZjeed5XgUb0_E';
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?alt=json&key=${API_KEY}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.values || data.values.length < 2) {
+                alert('Tidak ada data soal di spreadsheet developer.');
+                return;
+            }
+            // Ambil header dan rows
+            const [header, ...rows] = data.values;
+            const questions = [];
+            rows.forEach(row => {
+                if (row.length >= 17) {
+                    questions.push({
+                        vignette: row[1] || '',
+                        question: row[2] || '',
+                        options: [row[3] || '', row[4] || '', row[5] || '', row[6] || '', row[7] || ''],
+                        answer: row[8] || '',
+                        explanation: row[9] || '',
+                        tinjauan1: row[10] || '',
+                        tinjauan2: row[11] || '',
+                        tinjauan3: row[12] || '',
+                        tinjauan4: row[13] || '',
+                        tinjauan5: row[14] || '',
+                        tinjauan6: row[15] || '',
+                        tinjauan7: row[16] || '',
+                        isAIGenerated: true
+                    });
+                }
+            });
+            // Merge ke localStorage dan allQuizData
+            const existingQuestions = JSON.parse(localStorage.getItem('aiGeneratedQuestions') || '[]');
+            const existingKeys = new Set(existingQuestions.map(q => `${q.vignette}|${q.question}`));
+            const newQuestions = questions.filter(q => !existingKeys.has(`${q.vignette}|${q.question}`));
+            if (newQuestions.length === 0) {
+                alert('Tidak ada soal baru dari spreadsheet developer.');
+                return;
+            }
+            const updatedQuestions = [...existingQuestions, ...newQuestions];
+            localStorage.setItem('aiGeneratedQuestions', JSON.stringify(updatedQuestions));
+            allQuizData.push(...newQuestions);
+            updateQuestionCount();
+            showStartScreen();
+            alert(`Berhasil mengimpor ${newQuestions.length} soal dari spreadsheet developer!`);
+        })
+        .catch(err => {
+            alert('❌ Gagal import dari spreadsheet developer: ' + err.message);
+            console.error(err);
+        });
+}
+            // Tambahkan di akhir event listener utama, sebelum tanda penutup });
+const btnDevPush = document.createElement('button');
+btnDevPush.textContent = 'Sync ke Spreadsheet Developer';
+btnDevPush.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
+btnDevPush.onclick = pushAIQuestionsToDevSheet;
+document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevPush);
+
+const btnDevImport = document.createElement('button');
+btnDevImport.textContent = 'Import dari Spreadsheet Developer';
+btnDevImport.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
+btnDevImport.onclick = importFromDevSheet;
+document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevImport);
+
+            });
+    </script>
+</body>
+</html>

@@ -717,8 +717,23 @@ document.getElementById('generate-ai-btn').addEventListener('click', async funct
     // Panggil Gemini API
     const soalBaru = await generateSoalDenganGemini(filters);
 
+    // Hanya ambil field yang sesuai dengan tabel Supabase
     if (soalBaru) {
-        await addQuestionToSupabase(soalBaru);
+        const soalSupabase = {
+            question: soalBaru.question || "",
+            vignette: soalBaru.vignette || "",
+            options: soalBaru.options || [],
+            answer: soalBaru.answer || "",
+            explanation: soalBaru.explanation || "",
+            area_kompetensi: soalBaru.area_kompetensi || filters.areaKompetensi || "",
+            ranah_pembelajaran: soalBaru.ranah_pembelajaran || filters.ranahPembelajaran || "",
+            jenis_soal: soalBaru.jenis_soal || filters.jenisSoal || "",
+            profil: soalBaru.profil || filters.profil || "",
+            kegiatan_tindakan: soalBaru.kegiatan_tindakan || filters.kegiatanTindakan || "",
+            jenis_pekerjaan: soalBaru.jenis_pekerjaan || filters.jenisPekerjaan || "",
+            sasaran: soalBaru.sasaran || filters.sasaran || ""
+        };
+        await addQuestionToSupabase(soalSupabase);
         document.getElementById('ai-prompt-screen').classList.add('hidden');
         document.getElementById('exam-mode-btn').click();
     } else {

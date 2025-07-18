@@ -394,68 +394,75 @@
         return true;
     }
 
-    // TINJAUAN 1: Area Kompetensi
+// TINJAUAN 1: Area Kompetensi
 const areaKompetensi = [
-  "Promosi Kesehatan Gigi dan Mulut",
-  "Pencegahan Penyakit Gigi dan Mulut",
-  "Perawatan Dasar Gigi dan Mulut",
-  "Manajemen Pelayanan Kesehatan Gigi dan Mulut",
-  "Profesionalisme"
+  "Profesionalisme dan Kepatuhan Hukum",
+  "Keterampilan Sosial, Komunikasi dan Pengelolaan Informasi",
+  "Berpikir Kritis dan Pengembangan Diri",
+  "Landasan Ilmiah Ilmu Asuhan Kesehatan Gigi dan Mulut",
+  "Keterampilan Klinis Asuhan Kesehatan Gigi dan Mulut",
+  "Pengelolaan Asuhan Kesehatan Gigi dan Mulut"
 ];
 
-// TINJAUAN 2: Ranah Pembelajaran
+// TINJAUAN 2: Ranah Taksonomi Pembelajaran
 const ranahPembelajaran = [
-  "Pengetahuan",
-  "Keterampilan",
-  "Sikap"
+  "Kognitif",
+  "Procedural Knowledge",
+  "Afektif/konatif"
 ];
 
 // TINJAUAN 3: Jenis Soal
 const jenisSoal = [
-  "Pilihan Ganda Kompleks",
-  "Pilihan Ganda Satu Jawaban",
-  "Benar/Salah",
-  "Menjodohkan",
-  "Essay"
+  "Recalling",
+  "Reasoning"
 ];
 
 // TINJAUAN 4: Profil
 const profil = [
-  "Terapis Gigi dan Mulut",
-  "Dokter Gigi",
-  "Asisten Tenaga Kesehatan Gigi",
-  "Peserta Didik",
-  "Masyarakat"
+  "Pelaksana pelayanan asuhan kesehatan gigi dan mulut",
+  "Pelaksana promosi kesehatan gigi dan mulut",
+  "Pelaksana kegiatan asistensi pelayanan kesehatan gigi"
 ];
 
 // TINJAUAN 5: Kegiatan/Tindakan
 const kegiatanTindakan = [
-  "Pemeriksaan",
-  "Pencegahan",
-  "Perawatan",
-  "Penyuluhan",
-  "Rehabilitasi",
-  "Rujukan",
-  "Manajemen Kasus"
+  "Ekstraksi",
+  "Scalling",
+  "Filling",
+  "Fissure sealing/Surface Protection",
+  "Aplikasi fluor",
+  "Dental health education",
+  "Oral fisioterapi",
+  "Komunikasi Terapeutik",
+  "Pemeliharaan alat-alat kedokteran gigi",
+  "Pengendalian Infeksi Silang",
+  "Manajemen Klinik",
+  "Four handed dentistry",
+  "Manajemen UKGS",
+  "Manajemen Kesehatan Gigi dan Mulut Masyarakat",
+  "Tindakan kegawatdaruratan dalam keperawatan gigi",
+  "Tindakan kolaboratif/rujukan",
+  "Pengkajian"
 ];
 
 // TINJAUAN 6: Jenis Pekerjaan
 const jenisPekerjaan = [
-  "Mandiri",
-  "Kolaborasi",
-  "Supervisi"
+  "Dental assisting",
+  "Dental hygiene",
+  "Dental therapy"
 ];
 
 // TINJAUAN 7: Sasaran
 const sasaran = [
   "Individu",
-  "Keluarga",
   "Kelompok",
   "Masyarakat"
 ];
+
 // Debug: Pastikan array dan elemen select sudah ada
 console.log("Area Kompetensi:", areaKompetensi);
 console.log("Select 1:", document.getElementById('filter-1'));
+
 function populateDropdown(id, options) {
   const select = document.getElementById(id);
   if (!select) return;

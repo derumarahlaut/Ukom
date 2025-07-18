@@ -394,16 +394,90 @@
         return true;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    // TINJAUAN 1: Area Kompetensi
+const areaKompetensi = [
+  "Promosi Kesehatan Gigi dan Mulut",
+  "Pencegahan Penyakit Gigi dan Mulut",
+  "Perawatan Dasar Gigi dan Mulut",
+  "Manajemen Pelayanan Kesehatan Gigi dan Mulut",
+  "Profesionalisme"
+];
+
+// TINJAUAN 2: Ranah Pembelajaran
+const ranahPembelajaran = [
+  "Pengetahuan",
+  "Keterampilan",
+  "Sikap"
+];
+
+// TINJAUAN 3: Jenis Soal
+const jenisSoal = [
+  "Pilihan Ganda Kompleks",
+  "Pilihan Ganda Satu Jawaban",
+  "Benar/Salah",
+  "Menjodohkan",
+  "Essay"
+];
+
+// TINJAUAN 4: Profil
+const profil = [
+  "Terapis Gigi dan Mulut",
+  "Dokter Gigi",
+  "Asisten Tenaga Kesehatan Gigi",
+  "Peserta Didik",
+  "Masyarakat"
+];
+
+// TINJAUAN 5: Kegiatan/Tindakan
+const kegiatanTindakan = [
+  "Pemeriksaan",
+  "Pencegahan",
+  "Perawatan",
+  "Penyuluhan",
+  "Rehabilitasi",
+  "Rujukan",
+  "Manajemen Kasus"
+];
+
+// TINJAUAN 6: Jenis Pekerjaan
+const jenisPekerjaan = [
+  "Mandiri",
+  "Kolaborasi",
+  "Supervisi"
+];
+
+// TINJAUAN 7: Sasaran
+const sasaran = [
+  "Individu",
+  "Keluarga",
+  "Kelompok",
+  "Masyarakat"
+];
+
+function populateDropdown(id, options) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  select.innerHTML = '<option value="">-- Pilih --</option>';
+  options.forEach(opt => {
+    select.innerHTML += `<option value="${opt}">${opt}</option>`;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
         // === 3. GANTI SUMBER DATA: allQuizData dari Supabase ===
         const allQuizData = [];
         // Ambil soal dari Supabase saat aplikasi mulai
         const supabaseQuestions = await fetchQuestionsFromSupabase();
         allQuizData.push(...supabaseQuestions);
 
-        // ...lanjutkan kode Anda seperti biasa...
-        // (hapus/matikan kode populateQuestions dan semua proses localStorage AI questions)
-        // ...existing code...
+        // Isi dropdown filter sesuai 7 tinjauan
+    populateDropdown('filter-1', areaKompetensi);
+    populateDropdown('filter-2', ranahPembelajaran);
+    populateDropdown('filter-3', jenisSoal);
+    populateDropdown('filter-4', profil);
+    populateDropdown('filter-5', kegiatanTindakan);
+    populateDropdown('filter-6', jenisPekerjaan);
+    populateDropdown('filter-7', sasaran);
 
         // Contoh: updateQuestionCount() tetap jalan
         // ...existing code...

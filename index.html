@@ -453,7 +453,9 @@ const sasaran = [
   "Kelompok",
   "Masyarakat"
 ];
-
+// Debug: Pastikan array dan elemen select sudah ada
+console.log("Area Kompetensi:", areaKompetensi);
+console.log("Select 1:", document.getElementById('filter-1'));
 function populateDropdown(id, options) {
   const select = document.getElementById(id);
   if (!select) return;

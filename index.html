@@ -1450,7 +1450,7 @@ function syncToGoogleSheets(sharedId) {
 }            
 // Tambahkan di akhir event listener utama, sebelum tanda penutup });
             init(); // <-- Panggil init() dulu, agar dropdown terisi
-
+}); // <--- TAMBAHKAN BARIS INI
 try {
     const btnDevPush = document.createElement('button');
     btnDevPush.textContent = 'Sync ke Spreadsheet Developer';

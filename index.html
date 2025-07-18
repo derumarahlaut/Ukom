@@ -654,4 +654,46 @@ document.getElementById('learn-mode-btn').addEventListener('click', async functi
         alert('Soal ditemukan: ' + filtered.length); // Ganti dengan logika quiz Anda
     }
 });
+
+// Event listener tombol "Buat Soal Baru dengan AI"
+document.getElementById('generate-ai-btn').addEventListener('click', async function() {
+    const btn = this;
+    const loader = btn.querySelector('.loader');
+    const btnText = btn.querySelector('.btn-text');
+    btnText.textContent = 'Sedang membuat soal...';
+    loader.classList.remove('hidden');
+    btn.disabled = true;
+
+    // Ambil filter yang dipilih user
+    const filters = getSelectedFilters();
+
+    // Simulasi proses generate soal AI (ganti dengan logic AI Anda)
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulasi delay 2 detik
+
+    // Contoh: Tambahkan soal dummy ke Supabase (ganti dengan hasil AI)
+    const soalBaru = {
+        question: 'Contoh soal hasil generate AI',
+        vignette: '',
+        options: ['A', 'B', 'C', 'D'],
+        answer: 'A',
+        explanation: 'Penjelasan contoh soal AI',
+        area_kompetensi: filters.areaKompetensi,
+        ranah_pembelajaran: filters.ranahPembelajaran,
+        jenis_soal: filters.jenisSoal,
+        profil: filters.profil,
+        kegiatan_tindakan: filters.kegiatanTindakan,
+        jenis_pekerjaan: filters.jenisPekerjaan,
+        sasaran: filters.sasaran
+    };
+    await addQuestionToSupabase(soalBaru);
+
+    // Sembunyikan popup dan reset tombol
+    document.getElementById('ai-prompt-screen').classList.add('hidden');
+    btnText.textContent = 'Buat Soal Baru dengan AI';
+    loader.classList.add('hidden');
+    btn.disabled = false;
+
+    // Jalankan ulang filter agar soal baru langsung bisa digunakan
+    document.getElementById('exam-mode-btn').click();
+});
 </script>

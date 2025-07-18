@@ -655,6 +655,54 @@ document.getElementById('learn-mode-btn').addEventListener('click', async functi
     }
 });
 
+// Fungsi generate soal dengan Google Gemini API
+async function generateSoalDenganGemini(filters) {
+    const prompt = `
+Buat 1 soal pilihan ganda untuk uji kompetensi Terapis Gigi dan Mulut.
+Format JSON:
+{
+  "question": "...",
+  "vignette": "",
+  "options": ["A", "B", "C", "D"],
+  "answer": "A",
+  "explanation": "...",
+  "area_kompetensi": "${filters.areaKompetensi}",
+  "ranah_pembelajaran": "${filters.ranahPembelajaran}",
+  "jenis_soal": "${filters.jenisSoal}",
+  "profil": "${filters.profil}",
+  "kegiatan_tindakan": "${filters.kegiatanTindakan}",
+  "jenis_pekerjaan": "${filters.jenisPekerjaan}",
+  "sasaran": "${filters.sasaran}"
+}
+Soal harus sesuai filter di atas.
+`;
+
+    const apiKey = "AIzaSyBIb2bLuAfTNQxnDjK1ArgqjPg2Gk2Tbso";
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
+
+    const body = {
+        contents: [{ parts: [{ text: prompt }] }]
+    };
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+    try {
+        const text = data.candidates[0].content.parts[0].text;
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+    } catch (e) {
+        alert("Gagal parsing soal dari AI");
+    }
+    return null;
+}
+
 // Event listener tombol "Buat Soal Baru dengan AI"
 document.getElementById('generate-ai-btn').addEventListener('click', async function() {
     const btn = this;
@@ -664,36 +712,21 @@ document.getElementById('generate-ai-btn').addEventListener('click', async funct
     loader.classList.remove('hidden');
     btn.disabled = true;
 
-    // Ambil filter yang dipilih user
     const filters = getSelectedFilters();
 
-    // Simulasi proses generate soal AI (ganti dengan logic AI Anda)
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulasi delay 2 detik
+    // Panggil Gemini API
+    const soalBaru = await generateSoalDenganGemini(filters);
 
-    // Contoh: Tambahkan soal dummy ke Supabase (ganti dengan hasil AI)
-    const soalBaru = {
-        question: 'Contoh soal hasil generate AI',
-        vignette: '',
-        options: ['A', 'B', 'C', 'D'],
-        answer: 'A',
-        explanation: 'Penjelasan contoh soal AI',
-        area_kompetensi: filters.areaKompetensi,
-        ranah_pembelajaran: filters.ranahPembelajaran,
-        jenis_soal: filters.jenisSoal,
-        profil: filters.profil,
-        kegiatan_tindakan: filters.kegiatanTindakan,
-        jenis_pekerjaan: filters.jenisPekerjaan,
-        sasaran: filters.sasaran
-    };
-    await addQuestionToSupabase(soalBaru);
+    if (soalBaru) {
+        await addQuestionToSupabase(soalBaru);
+        document.getElementById('ai-prompt-screen').classList.add('hidden');
+        document.getElementById('exam-mode-btn').click();
+    } else {
+        alert("Gagal generate soal dari AI. Silakan coba lagi.");
+    }
 
-    // Sembunyikan popup dan reset tombol
-    document.getElementById('ai-prompt-screen').classList.add('hidden');
     btnText.textContent = 'Buat Soal Baru dengan AI';
     loader.classList.add('hidden');
     btn.disabled = false;
-
-    // Jalankan ulang filter agar soal baru langsung bisa digunakan
-    document.getElementById('exam-mode-btn').click();
 });
 </script>

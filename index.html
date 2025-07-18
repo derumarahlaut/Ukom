@@ -1441,6 +1441,13 @@ function importFromDevSheet() {
             console.error(err);
         });
 }
+            // Tambahkan sebelum pemanggilan init();
+function importFromGoogleSheets() {
+    alert('Fitur import dari Google Sheets belum tersedia.');
+}
+function syncToGoogleSheets(sharedId) {
+    alert('Fitur export ke Google Sheets belum tersedia.');
+}
             // Tambahkan di akhir event listener utama, sebelum tanda penutup });
             init(); // <-- Panggil init() dulu, agar dropdown terisi
 

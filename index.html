@@ -337,13 +337,13 @@
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     // === 1. KONFIGURASI SUPABASE ===
     // Ganti dengan URL dan anon key project Supabase Anda!
     const SUPABASE_URL = 'https://zsctdtrgrecgyfbrxaoo.supabase.co'; // <-- GANTI!
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzY3RkdHJncmVjZ3lmYnJ4YW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MDY4ODYsImV4cCI6MjA2ODM4Mjg4Nn0.x3zOj9u3wxoeSi-4YDUjZoiT9xjTfNmaSOQ9H03QRNM'; // <-- GANTI!
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // === 2. CRUD SOAL SUPABASE ===
     async function fetchQuestionsFromSupabase() {
@@ -511,4 +511,3 @@
     renderCrudList();
 //
 </script>
-<!-- ...existing code... -->

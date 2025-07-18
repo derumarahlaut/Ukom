@@ -1442,19 +1442,23 @@ function importFromDevSheet() {
         });
 }
             // Tambahkan di akhir event listener utama, sebelum tanda penutup });
-const btnDevPush = document.createElement('button');
-btnDevPush.textContent = 'Sync ke Spreadsheet Developer';
-btnDevPush.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
-btnDevPush.onclick = pushAIQuestionsToDevSheet;
-document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevPush);
+            init(); // <-- Panggil init() dulu, agar dropdown terisi
 
-const btnDevImport = document.createElement('button');
-btnDevImport.textContent = 'Import dari Spreadsheet Developer';
-btnDevImport.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
-btnDevImport.onclick = importFromDevSheet;
-document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevImport);
-init();
-            });
+try {
+    const btnDevPush = document.createElement('button');
+    btnDevPush.textContent = 'Sync ke Spreadsheet Developer';
+    btnDevPush.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
+    btnDevPush.onclick = pushAIQuestionsToDevSheet;
+    document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevPush);
+
+    const btnDevImport = document.createElement('button');
+    btnDevImport.textContent = 'Import dari Spreadsheet Developer';
+    btnDevImport.className = 'text-purple-500 hover:text-purple-700 text-xs underline ml-2';
+    btnDevImport.onclick = importFromDevSheet;
+    document.querySelector('#questions-info-text').parentElement.querySelector('.flex.gap-2').appendChild(btnDevImport);
+} catch (e) {
+    console.error('Gagal menambahkan tombol custom:', e);
+}
     </script>
 </body>
 </html>

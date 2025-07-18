@@ -497,9 +497,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Jika ingin edit/hapus, gunakan updateQuestionInSupabase dan deleteQuestionFromSupabase
 
         // ...existing code...
-// Panggil init() seperti biasa
-// init(); // HAPUS atau KOMENTARI baris ini jika tidak ada fungsi init()
-// ...existing code...
     });
     // === FORM CRUD SOAL SEDERHANA (ADMIN) ===
     // Tambahkan form CRUD di bawah halaman (atau di modal sesuai kebutuhan)
@@ -594,4 +591,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     renderCrudList();
 //
+// Fungsi mengambil nilai filter dari dropdown
+function getSelectedFilters() {
+    return {
+        areaKompetensi: document.getElementById('filter-1').value,
+        ranahPembelajaran: document.getElementById('filter-2').value,
+        jenisSoal: document.getElementById('filter-3').value,
+        profil: document.getElementById('filter-4').value,
+        kegiatanTindakan: document.getElementById('filter-5').value,
+        jenisPekerjaan: document.getElementById('filter-6').value,
+        sasaran: document.getElementById('filter-7').value
+    };
+}
+
+// Fungsi filter soal sesuai filter yang dipilih
+function filterQuestions(questions, filters) {
+    return questions.filter(q =>
+        (!filters.areaKompetensi || q.area_kompetensi === filters.areaKompetensi) &&
+        (!filters.ranahPembelajaran || q.ranah_pembelajaran === filters.ranahPembelajaran) &&
+        (!filters.jenisSoal || q.jenis_soal === filters.jenisSoal) &&
+        (!filters.profil || q.profil === filters.profil) &&
+        (!filters.kegiatanTindakan || q.kegiatan_tindakan === filters.kegiatanTindakan) &&
+        (!filters.jenisPekerjaan || q.jenis_pekerjaan === filters.jenisPekerjaan) &&
+        (!filters.sasaran || q.sasaran === filters.sasaran)
+    );
+}
+
+// Fungsi untuk menampilkan popup AI
+function showAIPrompt() {
+    document.getElementById('ai-prompt-screen').classList.remove('hidden');
+}
+
+// Fungsi untuk menutup popup AI
+document.getElementById('change-filter-btn').addEventListener('click', function() {
+    document.getElementById('ai-prompt-screen').classList.add('hidden');
+});
+
+// Event listener tombol Mulai Mode Ujian
+document.getElementById('exam-mode-btn').addEventListener('click', async function() {
+    const filters = getSelectedFilters();
+    const questions = await fetchQuestionsFromSupabase();
+    const filtered = filterQuestions(questions, filters);
+    if (filtered.length === 0) {
+        showAIPrompt();
+    } else {
+        // Lanjut ke quiz mode ujian
+        // tampilkan quiz-screen, dsb.
+        alert('Soal ditemukan: ' + filtered.length); // Ganti dengan logika quiz Anda
+    }
+});
+
+// Event listener tombol Mulai Mode Belajar
+document.getElementById('learn-mode-btn').addEventListener('click', async function() {
+    const filters = getSelectedFilters();
+    const questions = await fetchQuestionsFromSupabase();
+    const filtered = filterQuestions(questions, filters);
+    if (filtered.length === 0) {
+        showAIPrompt();
+    } else {
+        // Lanjut ke quiz mode belajar
+        // tampilkan quiz-screen, dsb.
+        alert('Soal ditemukan: ' + filtered.length); // Ganti dengan logika quiz Anda
+    }
+});
 </script>
